@@ -5,6 +5,8 @@
  */
 
 use Joomla\Filesystem\Path;
+use Joomla\Filesystem\Folder;
+use Joomla\Filesystem\File;
 
 /**
  * Tests for the Path class.
@@ -35,55 +37,126 @@ class PathTest extends PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * Test...
-	 *
-	 * @todo Implement testCanChmod().
+	 * Test the canChmod method.
 	 *
 	 * @return void
 	 */
 	public function testCanChmod()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$data = 'Lorem ipsum dolor sit amet';
+		File::write(__DIR__ . '/tempFile', $data);
+
+		$this->assertThat(
+			Path::canChmod(__DIR__ . '/tempFile'),
+			$this->isTrue(),
+			'Line:' . __LINE__ . ' Web user can modify permission of his own file.'
+		);
+
+		File::delete(__DIR__ . '/tempFile');
+
+		$this->assertThat(
+			Path::canChmod('/'),
+			$this->isFalse(),
+			'Line:' . __LINE__ . ' Web user can\'t modify permission of root user files.'
+		);
 	}
 
 	/**
-	 * Test...
-	 *
-	 * @todo Implement testSetPermissions().
+	 * Test the setPermission method.
 	 *
 	 * @return void
 	 */
 	public function testSetPermissions()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$this->assertThat(
+			Path::setPermissions(__DIR__ . '/tempFile'),
+			$this->isFalse(),
+			'Line:' . __LINE__ . ' Setting permission of a non-existing file should fail.'
+		);
+
+		$data = 'Lorem ipsum dolor sit amet';
+		File::write(__DIR__ . '/tempFile', $data);
+		$this->assertThat(
+			Path::setPermissions(__DIR__ . '/tempFile'),
+			$this->isTrue(),
+			'Line:' . __LINE__ . ' Setting permission of existing file should not fail.'
+		);
+		File::delete(__DIR__ . '/tempFile');
+
+		Folder::create(__DIR__ . '/tempFolder');
+		$this->assertThat(
+			Path::setPermissions(__DIR__ . '/tempFolder'),
+			$this->isTrue(),
+			'Line:' . __LINE__ . ' Setting permission of existing folder should not fail.'
+		);
+		Folder::delete(__DIR__ . '/tempFolder');
+
+		Folder::create(__DIR__ . '/tempFolder');
+		Folder::create(__DIR__ . '/tempFolder/tempSubFolder');
+		File::write(__DIR__ . '/tempFolder/tempFile', $data);
+		$this->assertThat(
+			Path::setPermissions(__DIR__ . '/tempFolder'),
+			$this->isTrue(),
+			'Line:' . __LINE__ . ' Setting permission of existing folder recursively should not fail.'
+		);
+		Folder::delete(__DIR__ . '/tempFolder');
 	}
 
 	/**
-	 * Test...
-	 *
-	 * @todo Implement testGetPermissions().
+	 * Test the testGetPermissions method.
 	 *
 	 * @return void
 	 */
 	public function testGetPermissions()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$data = 'Lorem ipsum dolor sit amet';
+		File::write(__DIR__ . '/tempFile', $data);
+
+		$this->assertEquals(
+			Path::getPermissions(__DIR__ . '/tempFile'),
+			"rw-rw-r--",
+			'Line:' . __LINE__ . ' Web user can modify permission of his own file.'
+		);
+
+		File::delete(__DIR__ . '/tempFile');
 	}
 
 	/**
-	 * Test...
-	 *
-	 * @todo Implement testCheck().
+	 * Test the check mthod.
 	 *
 	 * @return void
+	 *
+	 * @expectedException  Exception
 	 */
 	public function testCheck()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$this->assertEquals(
+			Path::check(__DIR__),
+			__DIR__,
+			'Line:' . __LINE__ . ' Already clean path should be returned as it'
+		);
+
+		$this->assertInstanceOf(
+			'Exception',
+			Path::check(__DIR__ . '/..'),
+			'Line:' . __LINE__ . ' Use of realtive path should throw an exception'
+		);
+	}
+
+	/**
+	 * Test the check method with out of bound path.
+	 *
+	 * @return void
+	 *
+	 * @expectedException  Exception
+	 */
+	public function testCheckOutOfBoundPath()
+	{
+		$this->assertInstanceOf(
+			'Exception',
+			Path::check('/home'),
+			'Line:' . __LINE__ . ' Snooping out of bound path should throw exception.'
+		);
 	}
 
 	/**
@@ -120,20 +193,20 @@ class PathTest extends PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * Test...
-	 *
-	 * @todo Implement testIsOwner().
+	 * Test the isOwner method.
 	 *
 	 * @return void
 	 */
 	public function testIsOwner()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$this->assertThat(
+			Path::isOwner('/home'),
+			$this->isFalse()
+		);
 	}
 
 	/**
-	 * Test...
+	 * Test the find method.
 	 *
 	 * @todo Implement testFind().
 	 *
@@ -141,7 +214,19 @@ class PathTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testFind()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$data = 'Lorem ipsum dolor sit amet';
+		File::write(__DIR__ . '/tempFile', $data);
+
+		$this->assertEquals(
+			Path::find(__DIR__, 'tempFile'),
+			__DIR__ . '/tempFile'
+		);
+
+		$this->assertThat(
+			Path::find(__DIR__, 'tFile'),
+			$this->isFalse()
+		);
+
+		File::delete(__DIR__ . '/tempFile');
 	}
 }
