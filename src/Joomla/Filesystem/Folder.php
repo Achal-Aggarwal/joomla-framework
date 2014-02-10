@@ -52,7 +52,7 @@ abstract class Folder
 
 		if (is_dir(Path::clean($dest)) && !$force)
 		{
-			throw new \RuntimeException('Destination folder not found', -1);
+			throw new \RuntimeException('Destination folder already exists', -1);
 		}
 
 		// Make sure the destination exists
